@@ -1,21 +1,17 @@
 
-import sys
 import cv2
 
-# Load the pre-trained face detection model
-cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-face_cascade = cv2.CascadeClassifier(cascade_path)
+# Load the face detection model
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
 
-if face_cascade.empty():
-    print(f"Error: Failed to load cascade classifier from {cascade_path}")
-    sys.exit(1)
-
-# Open the default webcam
+# Open webcam
 cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print("Error: Cannot access webcam")
-    sys.exit(1)
+    exit()
 
 while True:
     ret, frame = cap.read()
@@ -24,7 +20,7 @@ while True:
         print("Error: Cannot read frame")
         break
 
-    # Convert the frame to grayscale
+    # Convert to grayscale for face detection
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Detect faces
@@ -35,8 +31,8 @@ while True:
         minSize=(30, 30)
     )
 
-    # Draw a rectangle around each detected face
     for (x, y, w, h) in faces:
+        # Draw green box around face
         cv2.rectangle(
             frame,
             (x, y),
@@ -45,12 +41,24 @@ while True:
             2
         )
 
+        # Crop the detected face from original colour frame
+        face_crop = frame[y:y + h, x:x + w]
+
+        # Display cropped face separately
+        cv2.imshow("Cropped Face", face_crop)
+
+    # Display full camera frame
     cv2.imshow("Face Detection", frame)
 
     # Press q to quit
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
-    
+
+    # Stop if the main window is closed
+    if cv2.getWindowProperty(
+        "Face Detection", cv2.WND_PROP_VISIBLE
+    ) < 1:
+        break
 
 cap.release()
 cv2.destroyAllWindows()
